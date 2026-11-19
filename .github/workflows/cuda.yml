@@ -1,0 +1,26 @@
+name: PyGo CUDA Validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nvcc:
+    name: NVIDIA CUDA
+    runs-on: [self-hosted, cuda, nvidia]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show CUDA toolchain
+        run: |
+          nvidia-smi
+          nvcc --version
+      - name: Validate CUDA translation units
+        run: python3 tools/cuda/validate_cuda_sources.py --nvcc "$(command -v nvcc)"
+      - name: Configure CUDA build
+        run: cmake -S . -B build-cuda -DCMAKE_BUILD_TYPE=Release -DPYGO_ENABLE_CUDA=ON -DPYGO_BUILD_SHARED=ON -DPYGO_BUILD_TESTS=ON
+      - name: Build CUDA runtime
+        run: cmake --build build-cuda --parallel 2
+      - name: Test CUDA runtime
+        run: ctest --test-dir build-cuda --output-on-failure
