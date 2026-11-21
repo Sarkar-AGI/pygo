@@ -1,5 +1,5 @@
 import importlib
-import pygo
+import pygo-python
 
 
 def test_public_package_imports():
